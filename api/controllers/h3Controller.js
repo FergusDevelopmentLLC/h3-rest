@@ -343,15 +343,15 @@ exports.getGlobeHexagons = function(req, res) {
     feature.features[i].properties.id = feature.features[i].id;
   }
 
-  const outputFilename = __dirname + '\\h3bins\\' + resolution + '.geojson';
-  const fs = require('fs');
+  // const outputFilename = __dirname + '\\h3bins\\' + resolution + '.geojson';
+  // const fs = require('fs');
 
-  fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
-    if(err) {
-        return console.log(err);
-    }
-    console.log("The file was saved!");
-  }); 
+  // fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
+  //   if(err) {
+  //       return console.log(err);
+  //   }
+  //   console.log("The file was saved!");
+  // }); 
 
   res.json(feature);
   
