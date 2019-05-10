@@ -12,4 +12,7 @@ module.exports = function(app) {
   app.route('/h3/hexagons/:resolution')
     .get(h3.getGlobeHexagons);
 
+  app.route('/h3/binsforbb/:resolution/:boundingbox')
+    .get(h3.getH3BinsForBoundingBox);
+
 };

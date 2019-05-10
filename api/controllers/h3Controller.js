@@ -40,6 +40,95 @@ exports.getH3BinsForExtent = function(req, res) {
   res.json(feature);
 };
 
+exports.getMeteor = function(req, res) {
+  
+  const fs = require('fs');
+
+  console.log(__dirname);
+
+  let rawdata = fs.readFileSync(__dirname + '\\meteor.geojson');  
+  let meteors = JSON.parse(rawdata);  
+  console.log(meteors); 
+
+  res.json(meteors);
+};
+
+exports.getGlobeHexagons = function(req, res) {
+  const polygon = {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [174.8002464894,-84.899225613],[-175.0044410106,-84.899225613],[-175.0044410106,85.0186784617],[174.8002464894,85.0186784617],[174.8002464894,-84.899225613]
+      ]]
+    }
+  };
+
+  // [-90,-180],
+  // [-90, 180],
+  // [90, 180],
+  // [90, -180],
+  // [90, -180]
+
+  //[174.8002464894,-84.899225613],[-175.0044410106,-84.899225613],[-175.0044410106,85.0186784617],[174.8002464894,85.0186784617],[174.8002464894,-84.899225613]
+  //[152.5232355587,-84.899225613],[-147.7111394413,-84.899225613],[-147.7111394413,85.0186784617],[152.5232355587,85.0186784617],[152.5232355587,-84.899225613]
+  //[-131.6924011707,9.9027199279],[-62.5224792957,9.9027199279],[-62.5224792957,59.4109275135],[-131.6924011707,59.4109275135],[-131.6924011707,9.9027199279]
+  
+  let resolution = parseInt(req.params.resolution);
+  const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
+  const feature = geojson2h3.h3SetToFeatureCollection(hexagons);
+  for (let i = 0; i < feature.features.length; i++) { 
+    feature.features[i].properties.id = feature.features[i].id;
+  }
+
+  // const outputFilename = __dirname + '\\h3bins\\' + resolution + '.geojson';
+  // const fs = require('fs');
+
+  // fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
+  //   if(err) {
+  //       return console.log(err);
+  //   }
+  //   console.log("The file was saved!");
+  // }); 
+
+  res.json(feature);
+  
+};
+
+exports.getH3BinsForBoundingBox = function(req, res) {
+
+  let bb = req.params.boundingbox;
+
+  bb = bb.replace(/\],\[/g, '|');
+  bb = bb.replace(/\[/g, '');
+  bb = bb.replace(/\]/g, '');
+  let bbArray = bb.split('|');
+  bbArrayFinal = [];
+  
+  for (let i = 0; i < bbArray.length; i++) { 
+    let point = bbArray[i];
+    let pointArray = point.split(',').map(Number);
+    bbArrayFinal.push(pointArray);
+  }
+
+  const polygon = {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: bbArrayFinal
+    }
+  };
+
+  let resolution = parseInt(req.params.resolution);
+  const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
+  const feature = geojson2h3.h3SetToFeatureCollection(hexagons);
+  for (let i = 0; i < feature.features.length; i++) { 
+    feature.features[i].properties.id = feature.features[i].id;
+  }
+
+  res.json(feature);
+};
+
 getH3ResolutionBasedOn = (zoom) => {
   let resolution = 1;
   
@@ -302,57 +391,3 @@ removeProblemBins = (feature) => {
   return feature;
 }
 
-exports.getMeteor = function(req, res) {
-  
-  const fs = require('fs');
-
-  console.log(__dirname);
-
-  let rawdata = fs.readFileSync(__dirname + '\\meteor.geojson');  
-  let meteors = JSON.parse(rawdata);  
-  console.log(meteors); 
-
-  res.json(meteors);
-};
-
-exports.getGlobeHexagons = function(req, res) {
-  const polygon = {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [[
-        [174.8002464894,-84.899225613],[-175.0044410106,-84.899225613],[-175.0044410106,85.0186784617],[174.8002464894,85.0186784617],[174.8002464894,-84.899225613]
-      ]]
-    }
-  };
-
-  // [-90,-180],
-  // [-90, 180],
-  // [90, 180],
-  // [90, -180],
-  // [90, -180]
-
-  //[174.8002464894,-84.899225613],[-175.0044410106,-84.899225613],[-175.0044410106,85.0186784617],[174.8002464894,85.0186784617],[174.8002464894,-84.899225613]
-  //[152.5232355587,-84.899225613],[-147.7111394413,-84.899225613],[-147.7111394413,85.0186784617],[152.5232355587,85.0186784617],[152.5232355587,-84.899225613]
-  //[-131.6924011707,9.9027199279],[-62.5224792957,9.9027199279],[-62.5224792957,59.4109275135],[-131.6924011707,59.4109275135],[-131.6924011707,9.9027199279]
-  
-  let resolution = parseInt(req.params.resolution);
-  const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
-  const feature = geojson2h3.h3SetToFeatureCollection(hexagons);
-  for (let i = 0; i < feature.features.length; i++) { 
-    feature.features[i].properties.id = feature.features[i].id;
-  }
-
-  // const outputFilename = __dirname + '\\h3bins\\' + resolution + '.geojson';
-  // const fs = require('fs');
-
-  // fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
-  //   if(err) {
-  //       return console.log(err);
-  //   }
-  //   console.log("The file was saved!");
-  // }); 
-
-  res.json(feature);
-  
-};
