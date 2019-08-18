@@ -47,7 +47,7 @@ exports.getMeteor = function(req, res) {
 
   console.log(__dirname);
 
-  let rawdata = fs.readFileSync(__dirname + '\\meteor.geojson');  
+  let rawdata = fs.readFileSync(__dirname + '//meteor.geojson');  
   let meteors = JSON.parse(rawdata);  
   console.log(meteors); 
 
@@ -127,7 +127,18 @@ exports.getH3BinsForBoundingBox = function(req, res) {
     feature.features[i].properties.id = feature.features[i].id;
   }
 
-  res.json(feature);
+  const outputFilename = __dirname + '/h3bins/' + resolution + '.geojson';
+  const fs = require('fs');
+
+  fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
+    if(err) {
+        return console.log(err);
+    }
+    console.log("The file was saved!");
+  }); 
+
+  //res.json(feature);
+  res.json('the file was saved!')
 };
 
 getH3ResolutionBasedOn = (zoom) => {
