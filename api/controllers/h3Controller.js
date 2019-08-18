@@ -5,8 +5,8 @@ const h3_03_data = require('./data/h3_03_data.json');
 const h3_04_data = require('./data/h3_04_data.json');
 const h3_05_data = require('./data/h3_05_data.json');
 
-exports.getH3BinsForExtent = function(req, res) {
-  
+exports.getH3BinsForExtent = function (req, res) {
+
   const resolution = getH3ResolutionBasedOn(req.params.zoom);
 
   const polygon = {
@@ -24,9 +24,9 @@ exports.getH3BinsForExtent = function(req, res) {
   };
 
   const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
-  
+
   let feature = geojson2h3.h3SetToFeatureCollection(hexagons);
-  
+
   feature = joinFeatureToData(feature, resolution);
 
   feature = assignClasses(feature);
@@ -37,79 +37,31 @@ exports.getH3BinsForExtent = function(req, res) {
 
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  
+
   res.json(feature);
 };
 
-exports.getMeteor = function(req, res) {
-  
+exports.getMeteor = (req, res) => {
   const fs = require('fs');
-
-  console.log(__dirname);
-
-  let rawdata = fs.readFileSync(__dirname + '//meteor.geojson');  
-  let meteors = JSON.parse(rawdata);  
-  console.log(meteors); 
-
+  const meteors = JSON.parse(fs.readFileSync(`${__dirname}/meteor.geojson`))
   res.json(meteors);
 };
 
-exports.getGlobeHexagons = function(req, res) {
-  const polygon = {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [[
-        [174.8002464894,-84.899225613],[-175.0044410106,-84.899225613],[-175.0044410106,85.0186784617],[174.8002464894,85.0186784617],[174.8002464894,-84.899225613]
-      ]]
-    }
-  };
+exports.getH3BinsForBoundingBox = (req, res) => {
 
-  // [-90,-180],
-  // [-90, 180],
-  // [90, 180],
-  // [90, -180],
-  // [90, -180]
+  let boundingBox = req.params.boundingbox
 
-  //[174.8002464894,-84.899225613],[-175.0044410106,-84.899225613],[-175.0044410106,85.0186784617],[174.8002464894,85.0186784617],[174.8002464894,-84.899225613]
-  //[152.5232355587,-84.899225613],[-147.7111394413,-84.899225613],[-147.7111394413,85.0186784617],[152.5232355587,85.0186784617],[152.5232355587,-84.899225613]
-  //[-131.6924011707,9.9027199279],[-62.5224792957,9.9027199279],[-62.5224792957,59.4109275135],[-131.6924011707,59.4109275135],[-131.6924011707,9.9027199279]
+  boundingBox = boundingBox.replace(/\],\[/g, '|')
+  boundingBox = boundingBox.replace(/\[/g, '')
+  boundingBox = boundingBox.replace(/\]/g, '')
+
+  let bbArray = boundingBox.split('|')
   
-  let resolution = parseInt(req.params.resolution);
-  const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
-  const feature = geojson2h3.h3SetToFeatureCollection(hexagons);
-  for (let i = 0; i < feature.features.length; i++) { 
-    feature.features[i].properties.id = feature.features[i].id;
-  }
+  bbArrayFinal = []
 
-  // const outputFilename = __dirname + '\\h3bins\\' + resolution + '.geojson';
-  // const fs = require('fs');
-
-  // fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
-  //   if(err) {
-  //       return console.log(err);
-  //   }
-  //   console.log("The file was saved!");
-  // }); 
-
-  res.json(feature);
-  
-};
-
-exports.getH3BinsForBoundingBox = function(req, res) {
-
-  let bb = req.params.boundingbox;
-
-  bb = bb.replace(/\],\[/g, '|');
-  bb = bb.replace(/\[/g, '');
-  bb = bb.replace(/\]/g, '');
-  let bbArray = bb.split('|');
-  bbArrayFinal = [];
-  
-  for (let i = 0; i < bbArray.length; i++) { 
-    let point = bbArray[i];
-    let pointArray = point.split(',').map(Number);
-    bbArrayFinal.push(pointArray);
+  for (let point of bbArray) {
+    let pointArray = point.split(',').map(Number)
+    bbArrayFinal.push(pointArray)
   }
 
   const polygon = {
@@ -118,68 +70,63 @@ exports.getH3BinsForBoundingBox = function(req, res) {
       type: 'Polygon',
       coordinates: bbArrayFinal
     }
-  };
-
-  let resolution = parseInt(req.params.resolution);
-  const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
-  const feature = geojson2h3.h3SetToFeatureCollection(hexagons);
-  for (let i = 0; i < feature.features.length; i++) { 
-    feature.features[i].properties.id = feature.features[i].id;
   }
 
-  const outputFilename = __dirname + '/h3bins/' + resolution + '.geojson';
-  const fs = require('fs');
+  let resolution = parseInt(req.params.resolution)
+  const hexagons = geojson2h3.featureToH3Set(polygon, resolution)
+  const feature = geojson2h3.h3SetToFeatureCollection(hexagons)
 
-  fs.appendFile(outputFilename, JSON.stringify(feature), function(err) {
-    if(err) {
-        return console.log(err);
+  // why?
+  // for (let f of feature.features) {
+  //   f.properties.id = f.id
+  // }
+
+  const outputFilename = `${__dirname}/h3bins/${resolution}.geojson`
+
+  const fs = require('fs')
+  fs.appendFile(outputFilename, JSON.stringify(feature), (err) => {
+    if (err) {
+      res.json(err)
+      console.log(err)
     }
-    console.log("The file was saved!");
-  }); 
+    else {
+      const message = "The geojson file was saved!"
+      res.json(message);
+      console.log(message);
+      //res.json(feature);
+    }
+  })
 
-  //res.json(feature);
-  res.json('the file was saved!')
-};
+}
 
 getH3ResolutionBasedOn = (zoom) => {
-  let resolution = 1;
   
-  if(parseFloat(zoom) < 4.5)
-    resolution = 2;
-  else if (parseFloat(zoom) >= 4.5 && parseFloat(zoom) < 6)
-    resolution = 3;
-  else if (parseFloat(zoom) >= 6 && parseFloat(zoom) < 7.5)
-    resolution = 4;
-  else if (parseFloat(zoom) >= 7.5 && parseFloat(zoom) < 9)
-    resolution = 5;
-  else if (parseFloat(zoom) >= 9 && parseFloat(zoom) < 10.5)
-    resolution = 6;
-  else if (parseFloat(zoom) >= 10.5 && parseFloat(zoom) < 12)
-    resolution = 7;
-  else if (parseFloat(zoom) >= 12 && parseFloat(zoom) < 13.5)
-    resolution = 8;
-  else if (parseFloat(zoom) >= 13.5 && parseFloat(zoom) < 15)
-    resolution = 9;
-  else if (parseFloat(zoom) >= 15 && parseFloat(zoom) < 16.5)
-    resolution = 10;
-  else if (parseFloat(zoom) >= 16.5 && parseFloat(zoom) < 18)
-    resolution = 11;
-  else if (parseFloat(zoom) >= 18 && parseFloat(zoom) < 19.5)
-    resolution = 12;
-  else if (parseFloat(zoom) >= 19.5 && parseFloat(zoom) < 21)
-    resolution = 13;
-  else if (parseFloat(zoom) >= 21 && parseFloat(zoom) < 22.5)
-    resolution = 14;
-  else if (parseFloat(zoom) >= 22.5)
-    resolution = 15;
+  let res = 1
 
-  return resolution;
+  let z = parseFloat(zoom)
+
+  if      (z < 4.5)               res = 2
+  else if (z >= 4.5  && z < 6)    res = 3
+  else if (z >= 6    && z < 7.5)  res = 4
+  else if (z >= 7.5  && z < 9)    res = 5
+  else if (z >= 9    && z < 10.5) res = 6
+  else if (z >= 10.5 && z < 12)   res = 7
+  else if (z >= 12   && z < 13.5) res = 8
+  else if (z >= 13.5 && z < 15)   res = 9
+  else if (z >= 15   && z < 16.5) res = 10
+  else if (z >= 16.5 && z < 18)   res = 11
+  else if (z >= 18   && z < 19.5) res = 12
+  else if (z >= 19.5 && z < 21)   res = 13
+  else if (z >= 21   && z < 22.5) res = 14
+  else if (z >= 22.5)             res = 15
+
+  return res
 }
 
 assignIsPentagonClassTo = (feature) => {
-  for (let i = 0; i < feature.features.length; i++) { 
+  for (let i = 0; i < feature.features.length; i++) {
     feature.features[i].properties.id = feature.features[i].id;
-    if(feature.features[i].geometry.coordinates[0].length == 6) {
+    if (feature.features[i].geometry.coordinates[0].length == 6) {
       feature.features[i].properties.class = 'pentagon';
     }
   }
@@ -187,16 +134,16 @@ assignIsPentagonClassTo = (feature) => {
 }
 
 joinFeatureToData = (feature, resolution) => {
-  
-  for (let i = 0; i < feature.features.length; i++) { 
-    
+
+  for (let i = 0; i < feature.features.length; i++) {
+
     feature.features[i].properties.meteor_count = 0;
 
-    if(resolution == 1) {
-      
+    if (resolution == 1) {
+
       let tot = 0;
-      for (let ii = 0; ii < h3_01_data.length; ii++) { 
-        if(h3_01_data[ii].id == feature.features[i].id) {
+      for (let ii = 0; ii < h3_01_data.length; ii++) {
+        if (h3_01_data[ii].id == feature.features[i].id) {
           feature.features[i].properties.meteor_count = h3_01_data[ii].count;
         }
         tot = tot + h3_01_data[ii].count;
@@ -204,10 +151,10 @@ joinFeatureToData = (feature, resolution) => {
       feature.features[i].properties.tot_meteor_count = tot;
       feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
     }
-    else if(resolution == 2) {
+    else if (resolution == 2) {
       let tot = 0;
       for (let ii = 0; ii < h3_02_data.length; ii++) {
-        if(h3_02_data[ii].id == feature.features[i].id) {
+        if (h3_02_data[ii].id == feature.features[i].id) {
           feature.features[i].properties.meteor_count = h3_02_data[ii].count;
         }
         tot = tot + h3_02_data[ii].count;
@@ -215,10 +162,10 @@ joinFeatureToData = (feature, resolution) => {
       feature.features[i].properties.tot_meteor_count = tot;
       feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
     }
-    else if(resolution == 3) {
+    else if (resolution == 3) {
       let tot = 0;
-      for (let ii = 0; ii < h3_03_data.length; ii++) { 
-        if(h3_03_data[ii].id == feature.features[i].id) {
+      for (let ii = 0; ii < h3_03_data.length; ii++) {
+        if (h3_03_data[ii].id == feature.features[i].id) {
           feature.features[i].properties.meteor_count = h3_03_data[ii].count;
         }
         tot = tot + h3_03_data[ii].count;
@@ -226,10 +173,10 @@ joinFeatureToData = (feature, resolution) => {
       feature.features[i].properties.tot_meteor_count = tot;
       feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
     }
-    else if(resolution == 4) {
+    else if (resolution == 4) {
       let tot = 0;
-      for (let ii = 0; ii < h3_04_data.length; ii++) { 
-        if(h3_04_data[ii].id == feature.features[i].id) {
+      for (let ii = 0; ii < h3_04_data.length; ii++) {
+        if (h3_04_data[ii].id == feature.features[i].id) {
           feature.features[i].properties.meteor_count = h3_04_data[ii].count;
         }
         tot = tot + h3_04_data[ii].count;
@@ -237,10 +184,10 @@ joinFeatureToData = (feature, resolution) => {
       feature.features[i].properties.tot_meteor_count = tot;
       feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
     }
-    else if(resolution == 5) {
+    else if (resolution == 5) {
       let tot = 0;
-      for (let ii = 0; ii < h3_05_data.length; ii++) { 
-        if(h3_05_data[ii].id == feature.features[i].id) {
+      for (let ii = 0; ii < h3_05_data.length; ii++) {
+        if (h3_05_data[ii].id == feature.features[i].id) {
           feature.features[i].properties.meteor_count = h3_05_data[ii].count;
         }
         tot = tot + h3_05_data[ii].count;
@@ -257,47 +204,47 @@ assignClasses = (feature) => {
   let max_pct = 0;
 
   for (let i = 0; i < feature.features.length; i++) {
-    if(feature.features[i].properties.pct > max_pct) {
+    if (feature.features[i].properties.pct > max_pct) {
       max_pct = feature.features[i].properties.pct;
     }
   }
-  
+
   let min_pct = 0;
-  
-  if(feature.features[0].properties.pct) {
+
+  if (feature.features[0].properties.pct) {
     min_pct = feature.features[0].properties.pct;
   }
 
   for (let i = 0; i < feature.features.length; i++) {
-    if(feature.features[i].properties.pct < min_pct) {
+    if (feature.features[i].properties.pct < min_pct) {
       min_pct = feature.features[i].properties.pct;
     }
   }
 
-  if(max_pct > 0) {
+  if (max_pct > 0) {
     const break_length = max_pct / 5;
     for (let i = 0; i < feature.features.length; i++) {
-      if(feature.features[i].properties.pct == 0) {
+      if (feature.features[i].properties.pct == 0) {
         feature.features[i].properties.class = "0";
       }
-      else if(feature.features[i].properties.pct > 0 && feature.features[i].properties.pct <= break_length) {
+      else if (feature.features[i].properties.pct > 0 && feature.features[i].properties.pct <= break_length) {
         feature.features[i].properties.class = "1";
       }
-      else if(feature.features[i].properties.pct > break_length && feature.features[i].properties.pct <= break_length * 2) {
+      else if (feature.features[i].properties.pct > break_length && feature.features[i].properties.pct <= break_length * 2) {
         feature.features[i].properties.class = "2";
       }
-      else if(feature.features[i].properties.pct > break_length * 2 && feature.features[i].properties.pct <= break_length * 3) {
+      else if (feature.features[i].properties.pct > break_length * 2 && feature.features[i].properties.pct <= break_length * 3) {
         feature.features[i].properties.class = "3";
       }
-      else if(feature.features[i].properties.pct > break_length * 3 && feature.features[i].properties.pct <= break_length * 4) {
+      else if (feature.features[i].properties.pct > break_length * 3 && feature.features[i].properties.pct <= break_length * 4) {
         feature.features[i].properties.class = "4";
       }
-      else if(feature.features[i].properties.pct > break_length * 4 && feature.features[i].properties.pct <= break_length * 5) {
+      else if (feature.features[i].properties.pct > break_length * 4 && feature.features[i].properties.pct <= break_length * 5) {
         feature.features[i].properties.class = "5";
       }
     }
   }
- 
+
   return feature;
 }
 
@@ -389,12 +336,12 @@ removeProblemBins = (feature) => {
   const editedFeatures = [];
   for (let i = 0; i < feature.features.length; i++) {
     let addit = true;
-    for (let ii = 0; ii < badbins.length; ii++) { 
-      if(badbins[ii] == feature.features[i].id) {
+    for (let ii = 0; ii < badbins.length; ii++) {
+      if (badbins[ii] == feature.features[i].id) {
         addit = false;
       }
     }
-    if(addit) {
+    if (addit) {
       editedFeatures.push(feature.features[i]);
     }
   }
