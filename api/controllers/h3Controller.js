@@ -1,13 +1,11 @@
-const geojson2h3 = require('geojson2h3');
-const h3_01_data = require('./data/h3_01_data.json');
-const h3_02_data = require('./data/h3_02_data.json');
-const h3_03_data = require('./data/h3_03_data.json');
-const h3_04_data = require('./data/h3_04_data.json');
-const h3_05_data = require('./data/h3_05_data.json');
+const geojson2h3 = require('geojson2h3')
+const h3_01_data = require('./data/h3_01_data.json')
+const h3_02_data = require('./data/h3_02_data.json')
+const h3_03_data = require('./data/h3_03_data.json')
+const h3_04_data = require('./data/h3_04_data.json')
+const h3_05_data = require('./data/h3_05_data.json')
 
-exports.getH3BinsForExtent = function (req, res) {
-
-  const resolution = getH3ResolutionBasedOn(req.params.zoom);
+exports.getH3BinsForExtent = (req, res) => {
 
   const polygon = {
     type: 'Feature',
@@ -21,31 +19,39 @@ exports.getH3BinsForExtent = function (req, res) {
         req.params.top_left.split(',').map(Number)
       ]]
     }
-  };
+  }
 
-  const hexagons = geojson2h3.featureToH3Set(polygon, resolution);
+  const resolution = getH3ResolutionBasedOnZoom(req.params.zoom)
 
-  let feature = geojson2h3.h3SetToFeatureCollection(hexagons);
+  const hexagons = geojson2h3.featureToH3Set(polygon, resolution)
 
-  feature = joinFeatureToData(feature, resolution);
+  let fc = geojson2h3.h3SetToFeatureCollection(hexagons)
 
-  feature = assignClasses(feature);
+  fc = joinFeatureToData(fc, resolution)
 
-  feature = assignIsPentagonClassTo(feature);
+  fc = assignSymbologyClasses(fc)
 
-  feature = removeProblemBins(feature);
+  fc = assignPentagonClass(fc)
 
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  fc = removeProblemBins(fc)
 
-  res.json(feature);
-};
+  res.header("Access-Control-Allow-Origin", "*")
+
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
+  res.json(fc)
+
+}
 
 exports.getMeteor = (req, res) => {
-  const fs = require('fs');
+
+  const fs = require('fs')
+  
   const meteors = JSON.parse(fs.readFileSync(`${__dirname}/meteor.geojson`))
-  res.json(meteors);
-};
+  
+  res.json(meteors)
+
+}
 
 exports.getH3BinsForBoundingBox = (req, res) => {
 
@@ -91,20 +97,21 @@ exports.getH3BinsForBoundingBox = (req, res) => {
     }
     else {
       const message = "The geojson file was saved!"
-      res.json(message);
-      console.log(message);
-      //res.json(feature);
+      res.json(message)
+      console.log(message)
+      //res.json(feature)
     }
   })
 
 }
 
-getH3ResolutionBasedOn = (zoom) => {
+getH3ResolutionBasedOnZoom = (zoom) => {
   
   let res = 1
 
   let z = parseFloat(zoom)
 
+  //sucks, i know v
   if      (z < 4.5)               res = 2
   else if (z >= 4.5  && z < 6)    res = 3
   else if (z >= 6    && z < 7.5)  res = 4
@@ -123,230 +130,184 @@ getH3ResolutionBasedOn = (zoom) => {
   return res
 }
 
-assignIsPentagonClassTo = (feature) => {
-  for (let i = 0; i < feature.features.length; i++) {
-    feature.features[i].properties.id = feature.features[i].id;
-    if (feature.features[i].geometry.coordinates[0].length == 6) {
-      feature.features[i].properties.class = 'pentagon';
+assignPentagonClass = (featureCollection) => {
+
+  for (let f of featureCollection.features) {
+    if (f.geometry.coordinates[0].length == 6) {
+      f.properties.class = 'pentagon';
     }
   }
-  return feature;
+  
+  return featureCollection
 }
 
-joinFeatureToData = (feature, resolution) => {
+setCounts = (feature, dataSource) => {
+  
+  let tot = 0
 
-  for (let i = 0; i < feature.features.length; i++) {
-
-    feature.features[i].properties.meteor_count = 0;
-
-    if (resolution == 1) {
-
-      let tot = 0;
-      for (let ii = 0; ii < h3_01_data.length; ii++) {
-        if (h3_01_data[ii].id == feature.features[i].id) {
-          feature.features[i].properties.meteor_count = h3_01_data[ii].count;
-        }
-        tot = tot + h3_01_data[ii].count;
-      }
-      feature.features[i].properties.tot_meteor_count = tot;
-      feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
-    }
-    else if (resolution == 2) {
-      let tot = 0;
-      for (let ii = 0; ii < h3_02_data.length; ii++) {
-        if (h3_02_data[ii].id == feature.features[i].id) {
-          feature.features[i].properties.meteor_count = h3_02_data[ii].count;
-        }
-        tot = tot + h3_02_data[ii].count;
-      }
-      feature.features[i].properties.tot_meteor_count = tot;
-      feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
-    }
-    else if (resolution == 3) {
-      let tot = 0;
-      for (let ii = 0; ii < h3_03_data.length; ii++) {
-        if (h3_03_data[ii].id == feature.features[i].id) {
-          feature.features[i].properties.meteor_count = h3_03_data[ii].count;
-        }
-        tot = tot + h3_03_data[ii].count;
-      }
-      feature.features[i].properties.tot_meteor_count = tot;
-      feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
-    }
-    else if (resolution == 4) {
-      let tot = 0;
-      for (let ii = 0; ii < h3_04_data.length; ii++) {
-        if (h3_04_data[ii].id == feature.features[i].id) {
-          feature.features[i].properties.meteor_count = h3_04_data[ii].count;
-        }
-        tot = tot + h3_04_data[ii].count;
-      }
-      feature.features[i].properties.tot_meteor_count = tot;
-      feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
-    }
-    else if (resolution == 5) {
-      let tot = 0;
-      for (let ii = 0; ii < h3_05_data.length; ii++) {
-        if (h3_05_data[ii].id == feature.features[i].id) {
-          feature.features[i].properties.meteor_count = h3_05_data[ii].count;
-        }
-        tot = tot + h3_05_data[ii].count;
-      }
-      feature.features[i].properties.tot_meteor_count = tot;
-      feature.features[i].properties.pct = feature.features[i].properties.meteor_count / feature.features[i].properties.tot_meteor_count;
-    }
+  for (let bin of dataSource) {
+    if (bin.id == feature.id) feature.properties.meteor_count = bin.count
+    tot = tot + bin.count
   }
-  return feature;
+
+  feature.properties.tot_meteor_count = tot
+
+  feature.properties.pct = feature.properties.meteor_count / feature.properties.tot_meteor_count
 }
 
-assignClasses = (feature) => {
+joinFeatureToData = (featureCollection, res) => {
 
-  let max_pct = 0;
+  for (let f of featureCollection.features) {
 
-  for (let i = 0; i < feature.features.length; i++) {
-    if (feature.features[i].properties.pct > max_pct) {
-      max_pct = feature.features[i].properties.pct;
-    }
+    f.properties.meteor_count = 0
+
+    if      (res == 1) setCounts(f, h3_01_data)
+    else if (res == 2) setCounts(f, h3_02_data)
+    else if (res == 3) setCounts(f, h3_03_data)
+    else if (res == 4) setCounts(f, h3_04_data)
+    else if (res == 5) setCounts(f, h3_05_data)
+
   }
 
-  let min_pct = 0;
+  return featureCollection
+}
 
-  if (feature.features[0].properties.pct) {
-    min_pct = feature.features[0].properties.pct;
+assignSymbologyClasses = (featureCollection) => {
+
+  let max_pct = 0
+
+  let min_pct = 0
+
+  for (let f of featureCollection.features) {
+    if (f.properties.pct > max_pct) max_pct = f.properties.pct
   }
 
-  for (let i = 0; i < feature.features.length; i++) {
-    if (feature.features[i].properties.pct < min_pct) {
-      min_pct = feature.features[i].properties.pct;
-    }
+  if (featureCollection.features[0].properties.pct) min_pct = featureCollection.features[0].properties.pct
+
+  for (let f of featureCollection.features) {
+    if (f.properties.pct < min_pct) min_pct = f.properties.pct
   }
 
   if (max_pct > 0) {
-    const break_length = max_pct / 5;
-    for (let i = 0; i < feature.features.length; i++) {
-      if (feature.features[i].properties.pct == 0) {
-        feature.features[i].properties.class = "0";
-      }
-      else if (feature.features[i].properties.pct > 0 && feature.features[i].properties.pct <= break_length) {
-        feature.features[i].properties.class = "1";
-      }
-      else if (feature.features[i].properties.pct > break_length && feature.features[i].properties.pct <= break_length * 2) {
-        feature.features[i].properties.class = "2";
-      }
-      else if (feature.features[i].properties.pct > break_length * 2 && feature.features[i].properties.pct <= break_length * 3) {
-        feature.features[i].properties.class = "3";
-      }
-      else if (feature.features[i].properties.pct > break_length * 3 && feature.features[i].properties.pct <= break_length * 4) {
-        feature.features[i].properties.class = "4";
-      }
-      else if (feature.features[i].properties.pct > break_length * 4 && feature.features[i].properties.pct <= break_length * 5) {
-        feature.features[i].properties.class = "5";
-      }
+
+    const break_length = max_pct / 5
+    
+    for (let f of featureCollection.features) {  
+      if      (f.properties.pct == 0)                                                       { f.properties.class = "0" }
+      else if (f.properties.pct > 0 && f.properties.pct <= break_length)                    { f.properties.class = "1" }
+      else if (f.properties.pct > break_length && f.properties.pct <= break_length * 2)     { f.properties.class = "2" }
+      else if (f.properties.pct > break_length * 2 && f.properties.pct <= break_length * 3) { f.properties.class = "3" }
+      else if (f.properties.pct > break_length * 3 && f.properties.pct <= break_length * 4) { f.properties.class = "4" }
+      else if (f.properties.pct > break_length * 4 && f.properties.pct <= break_length * 5) { f.properties.class = "5" }
     }
+  
   }
 
-  return feature;
+  return featureCollection;
 }
 
-removeProblemBins = (feature) => {
+removeProblemBins = (featureCollection) => {
+  
   const badbins = [];
-  badbins.push('82226ffffffffff');
-  badbins.push('820d97fffffffff');
-  badbins.push('82236ffffffffff');
-  badbins.push('827fa7fffffffff');
-  badbins.push('82166ffffffffff');
-  badbins.push('82224ffffffffff');
-  badbins.push('820447fffffffff');
-  badbins.push('82176ffffffffff');
-  badbins.push('82234ffffffffff');
-  badbins.push('827f87fffffffff');
-  badbins.push('82164ffffffffff');
-  badbins.push('822267fffffffff');
-  badbins.push('82174ffffffffff');
-  badbins.push('82045ffffffffff');
-  badbins.push('8247b7fffffffff');
-  badbins.push('8233a7fffffffff');
-  badbins.push('829a67fffffffff');
-  badbins.push('825ba7fffffffff');
-  badbins.push('827f9ffffffffff');
-  badbins.push('821667fffffffff');
-  badbins.push('822247fffffffff');
-  badbins.push('824797fffffffff');
-  badbins.push('82bac7fffffffff');
-  badbins.push('829b67fffffffff');
-  badbins.push('823387fffffffff');
-  badbins.push('827eb7fffffffff');
-  badbins.push('8271b7fffffffff');
-  badbins.push('829a47fffffffff');
-  badbins.push('825b87fffffffff');
-  badbins.push('829b47fffffffff');
-  badbins.push('82225ffffffffff');
-  badbins.push('827e97fffffffff');
-  badbins.push('820d87fffffffff');
-  badbins.push('827197fffffffff');
-  badbins.push('82badffffffffff');
-  badbins.push('82339ffffffffff');
-  badbins.push('829a5ffffffffff');
-  badbins.push('825b9ffffffffff');
-  badbins.push('82165ffffffffff');
-  badbins.push('8232b7fffffffff');
-  badbins.push('829b5ffffffffff');
-  badbins.push('825ab7fffffffff');
-  badbins.push('820d9ffffffffff');
-  badbins.push('823297fffffffff');
-  badbins.push('820cb7fffffffff');
-  badbins.push('825a97fffffffff');
-  badbins.push('820db7fffffffff');
-  badbins.push('820c97fffffffff');
-  badbins.push('82f337fffffffff');
-  badbins.push('82ed6ffffffffff');
-  badbins.push('82bae7fffffffff');
-  badbins.push('82eaaffffffffff');
-  badbins.push('82ba37fffffffff');
-  badbins.push('82eaf7fffffffff');
-  badbins.push('82ba27fffffffff');
-  badbins.push('82f317fffffffff');
-  badbins.push('82bb1ffffffffff');
-  badbins.push('82ea8ffffffffff');
-  badbins.push('82f3a7fffffffff');
-  badbins.push('82ead7fffffffff');
-  badbins.push('82ba07fffffffff');
-  badbins.push('82eac7fffffffff');
-  badbins.push('82db27fffffffff');
-  badbins.push('82f387fffffffff');
-  badbins.push('82eab7fffffffff');
-  badbins.push('82ed67fffffffff');
-  badbins.push('82db17fffffffff');
-  badbins.push('82bb37fffffffff');
-  badbins.push('82db07fffffffff');
-  badbins.push('82ba1ffffffffff');
-  badbins.push('82f2b7fffffffff');
-  badbins.push('82dba7fffffffff');
-  badbins.push('82f3affffffffff');
-  badbins.push('82eadffffffffff');
-  badbins.push('82ea87fffffffff');
-  badbins.push('82db97fffffffff');
-  badbins.push('82bb07fffffffff');
-  badbins.push('82f39ffffffffff');
-  badbins.push('82eacffffffffff');
-  badbins.push('82db87fffffffff');
-  badbins.push('82baf7fffffffff');
-  badbins.push('82f38ffffffffff');
+
+  badbins.push('82226ffffffffff')
+  badbins.push('820d97fffffffff')
+  badbins.push('82236ffffffffff')
+  badbins.push('827fa7fffffffff')
+  badbins.push('82166ffffffffff')
+  badbins.push('82224ffffffffff')
+  badbins.push('820447fffffffff')
+  badbins.push('82176ffffffffff')
+  badbins.push('82234ffffffffff')
+  badbins.push('827f87fffffffff')
+  badbins.push('82164ffffffffff')
+  badbins.push('822267fffffffff')
+  badbins.push('82174ffffffffff')
+  badbins.push('82045ffffffffff')
+  badbins.push('8247b7fffffffff')
+  badbins.push('8233a7fffffffff')
+  badbins.push('829a67fffffffff')
+  badbins.push('825ba7fffffffff')
+  badbins.push('827f9ffffffffff')
+  badbins.push('821667fffffffff')
+  badbins.push('822247fffffffff')
+  badbins.push('824797fffffffff')
+  badbins.push('82bac7fffffffff')
+  badbins.push('829b67fffffffff')
+  badbins.push('823387fffffffff')
+  badbins.push('827eb7fffffffff')
+  badbins.push('8271b7fffffffff')
+  badbins.push('829a47fffffffff')
+  badbins.push('825b87fffffffff')
+  badbins.push('829b47fffffffff')
+  badbins.push('82225ffffffffff')
+  badbins.push('827e97fffffffff')
+  badbins.push('820d87fffffffff')
+  badbins.push('827197fffffffff')
+  badbins.push('82badffffffffff')
+  badbins.push('82339ffffffffff')
+  badbins.push('829a5ffffffffff')
+  badbins.push('825b9ffffffffff')
+  badbins.push('82165ffffffffff')
+  badbins.push('8232b7fffffffff')
+  badbins.push('829b5ffffffffff')
+  badbins.push('825ab7fffffffff')
+  badbins.push('820d9ffffffffff')
+  badbins.push('823297fffffffff')
+  badbins.push('820cb7fffffffff')
+  badbins.push('825a97fffffffff')
+  badbins.push('820db7fffffffff')
+  badbins.push('820c97fffffffff')
+  badbins.push('82f337fffffffff')
+  badbins.push('82ed6ffffffffff')
+  badbins.push('82bae7fffffffff')
+  badbins.push('82eaaffffffffff')
+  badbins.push('82ba37fffffffff')
+  badbins.push('82eaf7fffffffff')
+  badbins.push('82ba27fffffffff')
+  badbins.push('82f317fffffffff')
+  badbins.push('82bb1ffffffffff')
+  badbins.push('82ea8ffffffffff')
+  badbins.push('82f3a7fffffffff')
+  badbins.push('82ead7fffffffff')
+  badbins.push('82ba07fffffffff')
+  badbins.push('82eac7fffffffff')
+  badbins.push('82db27fffffffff')
+  badbins.push('82f387fffffffff')
+  badbins.push('82eab7fffffffff')
+  badbins.push('82ed67fffffffff')
+  badbins.push('82db17fffffffff')
+  badbins.push('82bb37fffffffff')
+  badbins.push('82db07fffffffff')
+  badbins.push('82ba1ffffffffff')
+  badbins.push('82f2b7fffffffff')
+  badbins.push('82dba7fffffffff')
+  badbins.push('82f3affffffffff')
+  badbins.push('82eadffffffffff')
+  badbins.push('82ea87fffffffff')
+  badbins.push('82db97fffffffff')
+  badbins.push('82bb07fffffffff')
+  badbins.push('82f39ffffffffff')
+  badbins.push('82eacffffffffff')
+  badbins.push('82db87fffffffff')
+  badbins.push('82baf7fffffffff')
+  badbins.push('82f38ffffffffff')
 
   const editedFeatures = [];
-  for (let i = 0; i < feature.features.length; i++) {
-    let addit = true;
-    for (let ii = 0; ii < badbins.length; ii++) {
-      if (badbins[ii] == feature.features[i].id) {
-        addit = false;
-      }
-    }
-    if (addit) {
-      editedFeatures.push(feature.features[i]);
-    }
-  }
-  feature.features = editedFeatures;
 
-  return feature;
+  for (let f of featureCollection.features) {
+    
+    let addit = true
+
+    for (let bin of badbins) {
+      if (bin == f.id) addit = false
+    }
+    
+    if (addit) editedFeatures.push(f)
+  }
+
+  featureCollection.features = editedFeatures
+
+  return featureCollection
 }
 
