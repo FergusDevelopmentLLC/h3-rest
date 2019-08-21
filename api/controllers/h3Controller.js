@@ -150,6 +150,12 @@ setCounts = (feature, dataSource) => {
     tot = tot + bin.count
   }
 
+  //const featureArray = []
+  //featureArray.push(feature)
+  //console.log('featureArray',featureArray)
+  //featureArray.map(x => Object.assign(x, dataSource.find(y => y.id == x.id)));
+  //console.log('featureArray',featureArray)
+  
   feature.properties.tot_meteor_count = tot
 
   feature.properties.pct = feature.properties.meteor_count / feature.properties.tot_meteor_count
@@ -157,17 +163,30 @@ setCounts = (feature, dataSource) => {
 
 joinFeatureToData = (featureCollection, res) => {
 
+  const featureArray = []
   for (let f of featureCollection.features) {
-
-    f.properties.meteor_count = 0
-
-    if      (res == 1) setCounts(f, h3_01_data)
-    else if (res == 2) setCounts(f, h3_02_data)
-    else if (res == 3) setCounts(f, h3_03_data)
-    else if (res == 4) setCounts(f, h3_04_data)
-    else if (res == 5) setCounts(f, h3_05_data)
-
+    featureArray.push(f)
   }
+  featureArray.map(x => Object.assign(x, h3_02_data.find(y => y.id == x.id)));
+  //console.log('featureArray',featureArray)
+  for(let f in featureArray) {
+    if(f.count && f.count > 0) {
+      console.log('f',f)
+    }
+  }
+  //console.log('h3_02_data',h3_02_data)
+
+  // for (let f of featureCollection.features) {
+
+  //   f.properties.meteor_count = 0
+
+  //   if      (res == 1) setCounts(f, h3_01_data)
+  //   else if (res == 2) setCounts(f, h3_02_data)
+  //   else if (res == 3) setCounts(f, h3_03_data)
+  //   else if (res == 4) setCounts(f, h3_04_data)
+  //   else if (res == 5) setCounts(f, h3_05_data)
+
+  // }
 
   return featureCollection
 }
