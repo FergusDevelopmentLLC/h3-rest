@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8' />
+  <title></title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.3.1/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.3.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <div id='map'>
+  </div>
+  <script>
+
+    // get bounding box: http://bboxfinder.com
+    let mapBounds = [-127.529297, 23.805450, -65.478516, 50.401515];//Southwest corner, Northeast corner
+
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid2lsbGNhcnRlciIsImEiOiJjamV4b2g3Z2ExOGF4MzFwN3R1dHJ3d2J4In0.Ti-hnuBH8W4bHn7k6GCpGw';
+
+    // let basemap = 'basic';
+    // let basemap = 'streets';
+    // let basemap = 'bright';
+    // let basemap = 'light';
+    let basemap = 'dark';
+    // let basemap = 'satellite';
+
+    let map = new mapboxgl.Map({
+      container: 'map',
+      style: `mapbox://styles/mapbox/${basemap}-v9`,
+      center: [(mapBounds[0] + mapBounds[2]) / 2, (mapBounds[1] + mapBounds[3]) / 2],
+      zoom: 4
+    });
+
+    map.on('zoomend', () => {
+      drawMap();
+    });
+
+    map.on('load', () => {
+      drawMap();
+    });
+
+    map.on('moveend', () => {
+      drawMap();
+    });
+
+    map.on('dragend', () => {
+      drawMap();
+    });
+
+    map.on('rotateend', () => {
+      drawMap();
+    });
+
+    map.on('pitchend', () => {
+      drawMap();
+    });
+
+    const drawMap = () => {
+
+      let bounds = map.getBounds()
+
+      let urlPrefix = 'http://104.236.16.91:8670/h3' 
+      
+      urlPrefix = 'http://localhost:8670/h3' 
+      
+      let minLng = eval(`bounds.${Object.keys(bounds)[0]}.lng`)
+      let minLat = eval(`bounds.${Object.keys(bounds)[0]}.lat`)
+      let maxLng = eval(`bounds.${Object.keys(bounds)[1]}.lng`)
+      let maxLat = eval(`bounds.${Object.keys(bounds)[1]}.lat`)
+      
+      let dataUrl = `${urlPrefix}/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
+
+      console.log('dataUrl', dataUrl)
+      
+      if(map.getLayer('blm')) map.removeLayer('blm') 
+      
+      if(map.getSource('blm')) map.removeSource('blm')
+
+      let source = {
+        type: 'geojson',
+        data: dataUrl
+      }
+
+      map.addSource('blm', source);
+
+      map.addLayer({
+        id: 'blm',
+        source: 'blm',
+        type: 'fill',
+        'paint': {
+          'fill-color': {
+            type: 'categorical',
+            property: 'class',
+            stops: [
+              ['0', '#EFF3FF'],
+              ['1', '#FFF3FF'],
+              ['2', '#BDD7E7'],
+              ['3', '#6BAED6'],
+              ['4', '#3182BD'],
+              ['5', '#08519C'],
+            ]
+          }, 
+          'fill-opacity': {
+            type: 'categorical',
+            property: 'class',
+            default: 0.4,
+            stops: [
+              ['0', 0]
+            ]
+          }
+        }
+      });
+
+    }
+
+  </script>
+
+</body>
+
+</html>
+
+<!-- https://blockbuilder.org/FergusDevelopmentLLC/b1bbac85e413315dd6d0d1d95a1e2f6e -->
+
+<!-- http://bl.ocks.org/FergusDevelopmentLLC/b1bbac85e413315dd6d0d1d95a1e2f6e/ -->
