@@ -133,6 +133,7 @@ getH3ResolutionBasedOnZoom = (zoom) => {
 assignPentagonClass = (featureCollection) => {
 
   for (let f of featureCollection.features) {
+    
     if (f.geometry.coordinates[0].length == 6) {
       f.properties.class = 'pentagon';
     }
@@ -163,30 +164,30 @@ setCounts = (feature, dataSource) => {
 
 joinFeatureToData = (featureCollection, res) => {
 
-  const featureArray = []
-  for (let f of featureCollection.features) {
-    featureArray.push(f)
-  }
-  featureArray.map(x => Object.assign(x, h3_02_data.find(y => y.id == x.id)));
-  //console.log('featureArray',featureArray)
-  for(let f in featureArray) {
-    if(f.count && f.count > 0) {
-      console.log('f',f)
-    }
-  }
+  // const featureArray = []
+  // for (let f of featureCollection.features) {
+  //   featureArray.push(f)
+  // }
+  // featureArray.map(x => Object.assign(x, h3_02_data.find(y => y.id == x.id)));
+  // //console.log('featureArray',featureArray)
+  // for(let f in featureArray) {
+  //   if(f.count && f.count > 0) {
+  //     console.log('f',f)
+  //   }
+  // }
   //console.log('h3_02_data',h3_02_data)
 
-  // for (let f of featureCollection.features) {
+  for (let f of featureCollection.features) {
 
-  //   f.properties.meteor_count = 0
+    f.properties.meteor_count = 0
 
-  //   if      (res == 1) setCounts(f, h3_01_data)
-  //   else if (res == 2) setCounts(f, h3_02_data)
-  //   else if (res == 3) setCounts(f, h3_03_data)
-  //   else if (res == 4) setCounts(f, h3_04_data)
-  //   else if (res == 5) setCounts(f, h3_05_data)
+    if      (res == 1) setCounts(f, h3_01_data)
+    else if (res == 2) setCounts(f, h3_02_data)
+    else if (res == 3) setCounts(f, h3_03_data)
+    else if (res == 4) setCounts(f, h3_04_data)
+    else if (res == 5) setCounts(f, h3_05_data)
 
-  // }
+  }
 
   return featureCollection
 }
@@ -201,9 +202,12 @@ assignSymbologyClasses = (featureCollection) => {
     if (f.properties.pct > max_pct) max_pct = f.properties.pct
   }
 
+  //console.log('featureCollection', featureCollection)
+
   if (featureCollection.features[0].properties.pct) min_pct = featureCollection.features[0].properties.pct
 
   for (let f of featureCollection.features) {
+    
     if (f.properties.pct < min_pct) min_pct = f.properties.pct
   }
 
