@@ -131,63 +131,58 @@ getH3ResolutionBasedOnZoom = (zoom) => {
 }
 
 assignPentagonClass = (featureCollection) => {
-
   for (let f of featureCollection.features) {
-    
-    if (f.geometry.coordinates[0].length == 6) {
-      f.properties.class = 'pentagon';
-    }
+    if (f.geometry.coordinates[0].length == 6) f.properties.class = 'pentagon';
   }
-  
   return featureCollection
 }
 
-setCounts = (feature, dataSource) => {
+setCountsForFeatureCollection = (featureCollection, dataSource) => {
   
-  let tot = 0
+  let fs = featureCollection.features
 
+  //console.log('fs.length', fs.length)
+  //check this... https://stackoverflow.com/questions/19480008/javascript-merging-objects-by-id
+  let hash = new Map()
+  fs.concat(dataSource).forEach((obj) => {
+    hash.set(obj.id, Object.assign(hash.get(obj.id) || {}, obj))
+  })
+  let populated = Array.from(hash.values())
+
+  //remove those without geometries. better way?
+  let binsWithGeom = []
+  for(let bin of populated) {
+
+    //copy the count at to the properties level
+    if(!bin.properties) bin.properties = {}
+    bin.properties.meteor_count = bin.count 
+    
+    //delete bin.count
+    if(bin.count) delete bin.count
+
+    bin.geometry && binsWithGeom.push(bin)
+  }
+  populated = binsWithGeom
+
+  let tot = 0
   for (let bin of dataSource) {
-    if (bin.id == feature.id) feature.properties.meteor_count = bin.count
     tot = tot + bin.count
   }
-
-  //const featureArray = []
-  //featureArray.push(feature)
-  //console.log('featureArray',featureArray)
-  //featureArray.map(x => Object.assign(x, dataSource.find(y => y.id == x.id)));
-  //console.log('featureArray',featureArray)
   
-  feature.properties.tot_meteor_count = tot
+  for(let bin of populated) {
+    bin.properties.tot_meteor_count = tot
+    bin.properties.pct = bin.properties.meteor_count / bin.properties.tot_meteor_count
+  }
 
-  feature.properties.pct = feature.properties.meteor_count / feature.properties.tot_meteor_count
 }
 
 joinFeatureToData = (featureCollection, res) => {
 
-  // const featureArray = []
-  // for (let f of featureCollection.features) {
-  //   featureArray.push(f)
-  // }
-  // featureArray.map(x => Object.assign(x, h3_02_data.find(y => y.id == x.id)));
-  // //console.log('featureArray',featureArray)
-  // for(let f in featureArray) {
-  //   if(f.count && f.count > 0) {
-  //     console.log('f',f)
-  //   }
-  // }
-  //console.log('h3_02_data',h3_02_data)
-
-  for (let f of featureCollection.features) {
-
-    f.properties.meteor_count = 0
-
-    if      (res == 1) setCounts(f, h3_01_data)
-    else if (res == 2) setCounts(f, h3_02_data)
-    else if (res == 3) setCounts(f, h3_03_data)
-    else if (res == 4) setCounts(f, h3_04_data)
-    else if (res == 5) setCounts(f, h3_05_data)
-
-  }
+  if      (res == 1) setCountsForFeatureCollection(featureCollection, h3_01_data)
+  else if (res == 2) setCountsForFeatureCollection(featureCollection, h3_02_data)
+  else if (res == 3) setCountsForFeatureCollection(featureCollection, h3_03_data)
+  else if (res == 4) setCountsForFeatureCollection(featureCollection, h3_04_data)
+  else if (res == 5) setCountsForFeatureCollection(featureCollection, h3_05_data)
 
   return featureCollection
 }
