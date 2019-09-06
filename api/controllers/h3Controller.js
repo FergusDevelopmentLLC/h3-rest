@@ -1,9 +1,16 @@
 const geojson2h3 = require('geojson2h3')
-const h3_01_data = require('./data/h3_01_data.json')
-const h3_02_data = require('./data/h3_02_data.json')
-const h3_03_data = require('./data/h3_03_data.json')
-const h3_04_data = require('./data/h3_04_data.json')
-const h3_05_data = require('./data/h3_05_data.json')
+
+// const h3_01_data = require('./data/h3_01_data.json')
+// const h3_02_data = require('./data/h3_02_data.json')
+// const h3_03_data = require('./data/h3_03_data.json')
+// const h3_04_data = require('./data/h3_04_data.json')
+// const h3_05_data = require('./data/h3_05_data.json')
+
+const h3_01_data = require('./data/hex3_01_mcdonalds.json')
+const h3_02_data = require('./data/hex3_02_mcdonalds.json')
+const h3_03_data = require('./data/hex3_03_mcdonalds.json')
+const h3_04_data = require('./data/hex3_04_mcdonalds.json')
+const h3_05_data = require('./data/hex3_05_mcdonalds.json')
 
 exports.getH3BinsForExtent = (req, res) => {
 
