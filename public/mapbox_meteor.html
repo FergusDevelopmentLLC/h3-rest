@@ -76,10 +76,12 @@
 
       let bounds = map.getBounds()
 
-      let urlPrefix
+      let urlPrefix = 'http://104.236.16.91:8670/h3' 
 
-      //urlPrefix = 'http://104.236.16.91:8670/h3' 
-      urlPrefix = 'http://localhost:8670/h3' 
+      if (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+        urlPrefix = 'http://localhost:8670/h3' 
+
+      console.log('urlPrefix', urlPrefix)
       
       let minLng = eval(`bounds.${Object.keys(bounds)[0]}.lng`)
       let minLat = eval(`bounds.${Object.keys(bounds)[0]}.lat`)
@@ -122,9 +124,14 @@
           'fill-opacity': {
             type: 'categorical',
             property: 'class',
-            default: 0.4,
+            default: 0,
             stops: [
-              ['0', 0]
+              ['0', 0],
+              ['1', 0.3],
+              ['2', 0.3],
+              ['3', 0.3],
+              ['4', 0.3],
+              ['5', 0.3],
             ]
           }
         }

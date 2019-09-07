@@ -119,20 +119,20 @@ getH3ResolutionBasedOnZoom = (zoom) => {
   let z = parseFloat(zoom)
 
   //sucks, i know v
-  if      (z < 4.5)               res = 2
-  else if (z >= 4.5  && z < 6)    res = 3
-  else if (z >= 6    && z < 7.5)  res = 4
-  else if (z >= 7.5  && z < 9)    res = 5
-  else if (z >= 9    && z < 10.5) res = 6
-  else if (z >= 10.5 && z < 12)   res = 7
-  else if (z >= 12   && z < 13.5) res = 8
-  else if (z >= 13.5 && z < 15)   res = 9
-  else if (z >= 15   && z < 16.5) res = 10
-  else if (z >= 16.5 && z < 18)   res = 11
-  else if (z >= 18   && z < 19.5) res = 12
-  else if (z >= 19.5 && z < 21)   res = 13
-  else if (z >= 21   && z < 22.5) res = 14
-  else if (z >= 22.5)             res = 15
+  if      (z <  4.0 )             res = 2
+  else if (z >= 4.0  && z < 5.5)  res = 3
+  else if (z >= 5.5  && z < 7.5)  res = 4
+  else if (z >= 7.0  && z < 8.5)  res = 5
+  else if (z >= 8.5  && z < 10.0) res = 6
+  else if (z >= 10.0 && z < 11.5) res = 7
+  else if (z >= 11.5 && z < 13.0) res = 8
+  else if (z >= 13.0 && z < 15)   res = 9
+  else if (z >= 15.0 && z < 16.0) res = 10
+  else if (z >= 16.0 && z < 17.5) res = 11
+  else if (z >= 17.5 && z < 19.0) res = 12
+  else if (z >= 19.0 && z < 20.5) res = 13
+  else if (z >= 20.5 && z < 21.5) res = 14
+  else if (z >= 21.5)             res = 15
 
   return res
 }
