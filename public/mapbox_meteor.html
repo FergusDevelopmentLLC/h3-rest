@@ -44,7 +44,7 @@
     //style: `mapbox://styles/mapbox/${basemap}-v9`,
     let map = new mapboxgl.Map({
       container: 'map',
-      style: `mapbox://styles/willcarter/ck0772sbl01yx1cnro5iwsj8b`,
+      style: `mapbox://styles/willcarter/ck093iquo1o6v1cnqcavka17a`,
       center: [(mapBounds[0] + mapBounds[2]) / 2, (mapBounds[1] + mapBounds[3]) / 2],
       zoom: 3
     });
@@ -90,54 +90,46 @@
       let maxLat = eval(`bounds.${Object.keys(bounds)[1]}.lat`)
       
       let dataUrl = `${urlPrefix}/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
-
       console.log('dataUrl', dataUrl)
       
-      if(map.getLayer('bins')) map.removeLayer('bins') 
+      if(map.getSource('bins')) map.getSource('bins').setData(dataUrl)
+      else map.addSource('bins', { type: 'geojson', data: dataUrl })
       
-      if(map.getSource('bins')) map.removeSource('bins')
-
-      let source = {
-        type: 'geojson',
-        data: dataUrl
-      }
-
-      map.addSource('bins', source);
-
-      map.addLayer({
-        id: 'bins',
-        source: 'bins',
-        type: 'fill',
-        'paint': {
-          'fill-color': {
-            type: 'categorical',
-            property: 'class',
-            stops: [
-              ['pentagon', '#f9a83a'],
-              ['0', '#EFF3FF'],
-              ['1', '#FFF3FF'],
-              ['2', '#BDD7E7'],
-              ['3', '#6BAED6'],
-              ['4', '#3182BD'],
-              ['5', '#08519C'],
-            ]
-          }, 
-          'fill-opacity': {
-            type: 'categorical',
-            property: 'class',
-            default: 0,
-            stops: [
-              ['0', 0],
-              ['1', 0.3],
-              ['2', 0.3],
-              ['3', 0.3],
-              ['4', 0.3],
-              ['5', 0.3],
-            ]
+      if(!map.getLayer('bins')) {
+        map.addLayer({
+          id: 'bins',
+          source: 'bins',
+          type: 'fill',
+          'paint': {
+            'fill-color': {
+              type: 'categorical',
+              property: 'class',
+              stops: [
+                ['pentagon', '#f9a83a'],
+                ['0', '#EFF3FF'],
+                ['1', '#FFF3FF'],
+                ['2', '#BDD7E7'],
+                ['3', '#6BAED6'],
+                ['4', '#3182BD'],
+                ['5', '#08519C'],
+              ]
+            }, 
+            'fill-opacity': {
+              type: 'categorical',
+              property: 'class',
+              default: 0,
+              stops: [
+                ['0', 0],
+                ['1', 0.1],
+                ['2', 0.1],
+                ['3', 0.1],
+                ['4', 0.1],
+                ['5', 0.1]
+              ]
+            }
           }
-        }
-      });
-
+        });
+      }
     }
 
   </script>
