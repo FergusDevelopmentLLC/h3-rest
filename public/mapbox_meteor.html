@@ -40,10 +40,11 @@
     // let basemap = 'light';
     let basemap = 'dark';
     // let basemap = 'satellite';
-
+    
+    //style: `mapbox://styles/mapbox/${basemap}-v9`,
     let map = new mapboxgl.Map({
       container: 'map',
-      style: `mapbox://styles/mapbox/${basemap}-v9`,
+      style: `mapbox://styles/willcarter/ck0772sbl01yx1cnro5iwsj8b`,
       center: [(mapBounds[0] + mapBounds[2]) / 2, (mapBounds[1] + mapBounds[3]) / 2],
       zoom: 3
     });
