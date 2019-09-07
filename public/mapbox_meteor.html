@@ -92,20 +92,20 @@
 
       console.log('dataUrl', dataUrl)
       
-      if(map.getLayer('blm')) map.removeLayer('blm') 
+      if(map.getLayer('bins')) map.removeLayer('bins') 
       
-      if(map.getSource('blm')) map.removeSource('blm')
+      if(map.getSource('bins')) map.removeSource('bins')
 
       let source = {
         type: 'geojson',
         data: dataUrl
       }
 
-      map.addSource('blm', source);
+      map.addSource('bins', source);
 
       map.addLayer({
-        id: 'blm',
-        source: 'blm',
+        id: 'bins',
+        source: 'bins',
         type: 'fill',
         'paint': {
           'fill-color': {
