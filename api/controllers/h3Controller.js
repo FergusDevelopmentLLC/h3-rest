@@ -11,6 +11,7 @@ const h3_02_data = require('./data/hex3_02_mcdonalds.json')
 const h3_03_data = require('./data/hex3_03_mcdonalds.json')
 const h3_04_data = require('./data/hex3_04_mcdonalds.json')
 const h3_05_data = require('./data/hex3_05_mcdonalds.json')
+const h3_06_data = require('./data/hex3_06_mcdonalds.json')
 
 exports.getH3BinsForExtent = (req, res) => {
 
@@ -190,6 +191,7 @@ joinFeatureToData = (featureCollection, res) => {
   else if (res == 3) setCountsForFeatureCollection(featureCollection, h3_03_data)
   else if (res == 4) setCountsForFeatureCollection(featureCollection, h3_04_data)
   else if (res == 5) setCountsForFeatureCollection(featureCollection, h3_05_data)
+  else if (res == 6) setCountsForFeatureCollection(featureCollection, h3_06_data)
 
   return featureCollection
 }
