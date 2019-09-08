@@ -58,10 +58,10 @@
 
       let bounds = map.getBounds()
 
-      let urlPrefix = 'http://104.236.16.91:8670/h3' 
+      let urlPrefix = 'http://104.236.16.91:8670/' 
 
       if (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-        urlPrefix = 'http://localhost:8670/h3' 
+        urlPrefix = 'http://localhost:8670/' 
 
       console.log('urlPrefix', urlPrefix)
       
@@ -70,7 +70,7 @@
       let maxLng = eval(`bounds.${Object.keys(bounds)[1]}.lng`)
       let maxLat = eval(`bounds.${Object.keys(bounds)[1]}.lat`)
       
-      let dataUrl = `${urlPrefix}/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
+      let dataUrl = `${urlPrefix}h3/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
       console.log('dataUrl', dataUrl)
       
       if(map.getSource('bins')) map.getSource('bins').setData(dataUrl)
@@ -117,12 +117,12 @@
         handleBinPopup(map)
       }
 
-      console.log('map.getZoom()', map.getZoom())
+      //console.log('map.getZoom()', map.getZoom())
       
       if(parseFloat(map.getZoom()) >= parseFloat(10)) {
-        //console.log('HEY')
-
-        let locationsUrl = `http://localhost:8680/getLocationsGeoJson/${minLng}/${minLat}/${maxLng}/${maxLat}`
+        
+        let locationPrefix = urlPrefix.replace(/8670/g, '8680')
+        let locationsUrl = `${locationPrefix}getLocationsGeoJson/${minLng}/${minLat}/${maxLng}/${maxLat}`
         console.log('locationsUrl', locationsUrl)
 
         if(map.getSource('locations')) map.getSource('locations').setData(locationsUrl)
@@ -143,6 +143,9 @@
           handleLocationPopup(map)
         }
 
+      }
+      else {
+        if(map.getLayer('locations')) map.removeLayer('locations')
       }
     }
 
