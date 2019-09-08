@@ -119,7 +119,7 @@
 
       console.log('map.getZoom()', map.getZoom())
       
-      if(parseFloat(map.getZoom()) >= parseFloat(11.5)) {
+      if(parseFloat(map.getZoom()) >= parseFloat(10)) {
         
         let locationPrefix = urlPrefix.replace(/8670/g, '8680')
         let locationsUrl = `${locationPrefix}getLocationsGeoJson/${minLng}/${minLat}/${maxLng}/${maxLat}`
