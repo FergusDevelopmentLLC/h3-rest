@@ -163,7 +163,7 @@ setCountsForFeatureCollection = (featureCollection, dataSource) => {
 
     //copy the count at to the properties level
     if(!bin.properties) bin.properties = {}
-    bin.properties.meteor_count = bin.count 
+    bin.properties.count = bin.count 
     
     //delete bin.count
     if(bin.count) delete bin.count
@@ -178,8 +178,8 @@ setCountsForFeatureCollection = (featureCollection, dataSource) => {
   }
   
   for(let bin of populated) {
-    bin.properties.tot_meteor_count = tot
-    bin.properties.pct = bin.properties.meteor_count / bin.properties.tot_meteor_count
+    bin.properties.tot_count = tot
+    bin.properties.pct = bin.properties.count / bin.properties.tot_count
   }
 
 }
