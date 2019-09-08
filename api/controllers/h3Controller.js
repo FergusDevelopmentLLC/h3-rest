@@ -14,6 +14,8 @@ const h3_05_data = require('./data/hex3_05_mcdonalds.json')
 const h3_06_data = require('./data/hex3_06_mcdonalds.json')
 //const h3_07_data = require('./data/hex3_07_mcdonalds.json')
 
+const locationsPoints = require('./data/mcdonalds.json');
+
 exports.getH3BinsForExtent = (req, res) => {
 
   const polygon = {
@@ -112,6 +114,45 @@ exports.getH3BinsForBoundingBox = (req, res) => {
     }
   })
 
+}
+
+exports.getLocationsGeoJson = (req, res) => {
+
+  let minLat = parseFloat(req.params.minLat)
+  let maxLat = parseFloat(req.params.maxLat)
+  let minLng = parseFloat(req.params.minLng)
+  let maxLng = parseFloat(req.params.maxLng)
+
+  let locationsCopy = Object.assign({}, locationsPoints)
+  locationsCopy.name = "McDowell's"
+  
+  let filteredFeatures = []
+
+  for(f of locationsCopy.features) {
+
+    let lat = parseFloat(f.properties.latitude)
+    let lng = parseFloat(f.properties.longitude)
+
+    f.properties.name = `McDowell's - ${f.properties.address} ${f.properties.city}, ${f.properties.state_province}`
+    f.properties.counter = `${Math.floor(Math.random() * 10) + 1}/10`
+    f.properties.event_description = f.properties.event_description.replace(/McDonald/g, 'McDowell')
+
+    if(
+      lat >= minLat
+      && lat <= maxLat
+      && lng >= minLng
+      && lng <= maxLng
+      ) {
+      filteredFeatures.push(f)
+    }
+  }
+
+  locationsCopy.features = filteredFeatures
+
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
+  res.json(locationsCopy)
 }
 
 getH3ResolutionBasedOnZoom = (zoom) => {

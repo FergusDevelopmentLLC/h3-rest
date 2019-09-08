@@ -16,4 +16,7 @@ module.exports = function(app) {
   app.route('/h3/binsforbb/:resolution/:boundingbox')
     .get(h3.getH3BinsForBoundingBox);
 
+  app.route('/getLocationsGeoJson/:minLng/:minLat/:maxLng/:maxLat')
+    .get(h3.getLocationsGeoJson)
+
 };
