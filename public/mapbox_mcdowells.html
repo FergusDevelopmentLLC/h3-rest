@@ -117,9 +117,9 @@
         handleBinPopup(map)
       }
 
-      //console.log('map.getZoom()', map.getZoom())
+      console.log('map.getZoom()', map.getZoom())
       
-      if(parseFloat(map.getZoom()) >= parseFloat(10)) {
+      if(parseFloat(map.getZoom()) >= parseFloat(11.5)) {
         
         let locationPrefix = urlPrefix.replace(/8670/g, '8680')
         let locationsUrl = `${locationPrefix}getLocationsGeoJson/${minLng}/${minLat}/${maxLng}/${maxLat}`
@@ -145,7 +145,10 @@
 
       }
       else {
-        if(map.getLayer('locations')) map.removeLayer('locations')
+        if(map.getLayer('locations')) {
+          map.removeLayer('locations')
+          map.removeSource('locations')
+        } 
       }
     }
 
