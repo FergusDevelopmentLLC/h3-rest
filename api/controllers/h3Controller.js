@@ -38,11 +38,11 @@ exports.getH3BinsForExtent = (req, res) => {
 
   let fc = geojson2h3.h3SetToFeatureCollection(hexagons)
 
+  fc = assignPentagonClass(fc)
+
   fc = joinFeatureToData(fc, resolution)
 
   fc = assignSymbologyClasses(fc)
-
-  fc = assignPentagonClass(fc)
 
   fc = removeProblemBins(fc)
 
@@ -203,6 +203,8 @@ setCountsForFeatureCollection = (featureCollection, dataSource) => {
   let binsWithGeom = []
   for(let bin of populated) {
 
+    //console.log('bin', bin)
+
     //copy the count at to the properties level
     if(!bin.properties) bin.properties = {}
     bin.properties.count = bin.count 
@@ -210,7 +212,8 @@ setCountsForFeatureCollection = (featureCollection, dataSource) => {
     //delete bin.count
     if(bin.count) delete bin.count
 
-    bin.geometry && binsWithGeom.push(bin)
+    if(bin.geometry) binsWithGeom.push(bin)
+    if(bin.properties.class == 'pentagon') binsWithGeom.push(bin)
   }
   populated = binsWithGeom
 

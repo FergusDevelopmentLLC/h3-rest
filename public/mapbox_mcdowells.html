@@ -30,16 +30,19 @@
   <script>
 
     // get bounding box: http://bboxfinder.com
-    let mapBounds = [-127.529297, 23.805450, -65.478516, 50.401515];//Southwest corner, Northeast corner
+    let mapBounds = [-150.205078,19.476950,-63.017578,53.173119]//Southwest corner, Northeast corner
 
-    mapboxgl.accessToken = 'pk.eyJ1Ijoid2lsbGNhcnRlciIsImEiOiJjamV4b2g3Z2ExOGF4MzFwN3R1dHJ3d2J4In0.Ti-hnuBH8W4bHn7k6GCpGw';
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid2lsbGNhcnRlciIsImEiOiJjamV4b2g3Z2ExOGF4MzFwN3R1dHJ3d2J4In0.Ti-hnuBH8W4bHn7k6GCpGw'
 
     let map = new mapboxgl.Map({
       container: 'map',
       style: `mapbox://styles/willcarter/ck0bc5smc3rfk1cnq156x3okp`,
       center: [(mapBounds[0] + mapBounds[2]) / 2, (mapBounds[1] + mapBounds[3]) / 2],
-      zoom: 3
+      zoom: 3.99,
+      minZoom: 3.99
     })
+
+    map.addControl(new mapboxgl.NavigationControl())
 
     let binPopup = new mapboxgl.Popup({
       closeButton: false,
@@ -103,6 +106,7 @@
               property: 'class',
               default: 0,
               stops: [
+                ['pentagon', 1],
                 ['0', 0],
                 ['1', 0.35],
                 ['2', 0.35],
