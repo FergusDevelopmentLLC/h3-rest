@@ -54,6 +54,46 @@ exports.getH3BinsForExtent = (req, res) => {
 
 }
 
+exports.getH3BinsForExtentNoData = (req, res) => {
+
+  const polygon = {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        req.params.top_left.split(',').map(Number),
+        req.params.bottom_left.split(',').map(Number),
+        req.params.bottom_right.split(',').map(Number),
+        req.params.top_right.split(',').map(Number),
+        req.params.top_left.split(',').map(Number)
+      ]]
+    }
+  }
+
+  const resolution = getH3ResolutionBasedOnZoom(req.params.zoom)
+
+  const hexagons = geojson2h3.featureToH3Set(polygon, resolution)
+
+  let fc = geojson2h3.h3SetToFeatureCollection(hexagons)
+
+  fc = assignPentagonClass(fc)
+
+  for (let f of fc.features) {  
+    if(f.properties.class !== 'pentagon') {
+      f.properties.class = "0"
+    }
+  }
+
+  fc = removeProblemBins(fc)
+
+  res.header("Access-Control-Allow-Origin", "*")
+
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
+  res.json(fc)
+
+}
+
 exports.getMeteor = (req, res) => {
 
   const fs = require('fs')
