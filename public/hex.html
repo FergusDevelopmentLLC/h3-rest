@@ -76,7 +76,7 @@
       let maxLng = eval(`bounds.${Object.keys(bounds)[1]}.lng`)
       let maxLat = eval(`bounds.${Object.keys(bounds)[1]}.lat`)
       
-      let dataUrl = `${urlPrefix}h3/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
+      let dataUrl = `${urlPrefix}h3NoData/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
       console.log('dataUrl', dataUrl)
       
       if(map.getSource('bins')) map.getSource('bins').setData(dataUrl)
