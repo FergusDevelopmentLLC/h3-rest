@@ -36,10 +36,10 @@
 
     let map = new mapboxgl.Map({
       container: 'map',
-      style: `mapbox://styles/willcarter/ck0bc5smc3rfk1cnq156x3okp`,
+      style: `mapbox://styles/mapbox/dark-v10`,
       center: [(mapBounds[0] + mapBounds[2]) / 2, (mapBounds[1] + mapBounds[3]) / 2],
       zoom: 3.99,
-      minZoom: 3.99
+      minZoom: 2.99
     })
 
     map.addControl(new mapboxgl.NavigationControl())
@@ -58,7 +58,10 @@
     map.on('moveend', () => drawMap())
 
     const drawMap = () => {
-
+      
+      console.log(map.getZoom())
+      console.log(map.getCenter())
+      
       let bounds = map.getBounds()
 
       let urlPrefix = 'http://104.236.16.91:8670/' 
@@ -73,7 +76,7 @@
       let maxLng = eval(`bounds.${Object.keys(bounds)[1]}.lng`)
       let maxLat = eval(`bounds.${Object.keys(bounds)[1]}.lat`)
       
-      let dataUrl = `${urlPrefix}h3/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
+      let dataUrl = `${urlPrefix}h3NoData/${minLng},${maxLat}/${minLng},${minLat}/${maxLng},${minLat}/${maxLng},${maxLat}/${map.getZoom()}`
       console.log('dataUrl', dataUrl)
       
       if(map.getSource('bins')) map.getSource('bins').setData(dataUrl)
@@ -87,13 +90,13 @@
           source: 'bins',
           type: 'fill',
           paint: {
-            'fill-outline-color': '#000000',
+            'fill-outline-color': 'rgba(255, 255, 255, .15)',
             'fill-color': {
               type: 'categorical',
               property: 'class',
               stops: [
                 ['pentagon', '#f9a83a'],
-                ['0', '#EFF3FF'],
+                ['0', 'rgba(0, 0, 0, 0)'],
                 ['1', '#FFF3FF'],
                 ['2', '#BDD7E7'],
                 ['3', '#6BAED6'],
@@ -107,7 +110,7 @@
               default: 0,
               stops: [
                 ['pentagon', 1],
-                ['0', 0],
+                ['0', 1],
                 ['1', 0.35],
                 ['2', 0.35],
                 ['3', 0.35],
@@ -209,11 +212,5 @@
     }
 
   </script>
-
 </body>
-
 </html>
-
-<!-- https://blockbuilder.org/FergusDevelopmentLLC/b1bbac85e413315dd6d0d1d95a1e2f6e -->
-
-<!-- http://bl.ocks.org/FergusDevelopmentLLC/b1bbac85e413315dd6d0d1d95a1e2f6e/ -->
